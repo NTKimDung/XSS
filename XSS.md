@@ -1,3 +1,4 @@
+# A. Lý thuyết
 ## XSS là gì?
 XSS, hay Cross-site scripting, là một loại lỗ hổng bảo mật web phổ biến cho phép kẻ tấn công chèn mã độc (thường là JavaScript) vào các trang web mà người dùng tin tưởng. Khi người dùng truy cập vào trang web bị nhiễm, mã độc sẽ được thực thi trong trình duyệt của họ, có khả năng đánh cắp thông tin nhạy cảm, thay đổi nội dung trang web, hoặc thậm chí chiếm quyền điều khiển hoàn toàn trình duyệt. 
 Kẻ tấn công có thể sử dụng lỗ hổng XSS để ăn cắp cookie, chiếm đoạt tài khoản, thực hiện ActiveX, thực thi Flash content, lừa người dùng tải phần mềm… Các vụ tấn công lừa đảo thường khai thác lỗ hổng XSS để giả mạo là các website hợp pháp.
@@ -223,6 +224,14 @@ Arachni là một Ruby framework với đầy đủ tính năng, modular và hi�
 ### 5. Phần mềm W3af
 W3af (Web Application Attack and Audit Framework) là một web scanner mã nguồn mở. Web scanner này cung cấp một công cụ quét và khai thác lỗ hổng cho các ứng dụng web. W3af được viết bằng ngôn ngữ Python và có sẵn cho nhiều hệ điều hành phổ biến khác như Microsoft Windows, Linux, Mac OS X, FreeBSD và OpenBSD.
 W3af được chia thành hai phần chính, đó là core và các plug-in. Bộ quét lỗ hổng xác định hầu hết các lỗ hổng trong ứng dụng web bằng cách sử dụng hơn 130 plug-in. Phần core kết hợp với các quy trình và đưa ra các tính năng dựa trên plug-in. Để từ đó tìm ra các lỗ hổng và khai thác chúng.
+# B. Thực hành
+## 1. Thực hành Reflected XSS với Burp Suite
+Thử nhập một vài kí tự "test123" vào search:
+<img width="1099" height="170" alt="image" src="https://github.com/user-attachments/assets/1ca598f5-e23b-4259-aa18-f6edbd20a763" />
+Kết quả: 
+<img width="1099" height="170" alt="image" src="https://github.com/user-attachments/assets/0f0751e7-0fab-40ba-998f-8cd62eb62dc6" />
+
+
 
 
 
