@@ -621,8 +621,7 @@ Vì không lọc/kiểm soát scheme của URL, attacker đặt `returnPath=java
 
 Khi nạn nhân click link, trình duyệt thực thi JS trong href.
 
-### 3,5. 
-### 3,6. DOM XSS in AngularJS expression with angle brackets and double quotes HTML-encoded
+### 3,5. DOM XSS in AngularJS expression with angle brackets and double quotes HTML-encoded
 Ta thử nhập một đoạn javascript thử xem có thực thi không kết quả là:
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/b4f4b2bd-932f-4d00-a6bb-eee0689c0da0" />
 
@@ -638,9 +637,13 @@ Vì ta thấy trang web đang dùng AngularJS v1.x (cụ thể là 1.7.7).
 Đồng thời trong <body> có: `<body ng-app>`
 
 → nghĩa là toàn bộ nội dung trong <body> sẽ được Angular xử lý bằng AngularJS expressions (biểu thức Angular).
+
+Vì thấy được biểu thức AngularJS nên ta dùng " cặp dấu ngoặc nhọn {{...}}" để chèn đoạn JS vào vì cặp dấu móc nhọn {{ ... }} được gọi là expression binding (biểu thức ràng buộc) và khi trang được render, AngularJS sẽ tìm tất cả {{ ... }}, evaluate (thực thi) nội dung bên trong, rồi thay bằng kết quả. Ta chèn đoạn JS như sau: `{{$on.constructor('alert(1)')()}}` và AngularJS sẽ cố gắng chạy biểu thức đó vì nó coi đây là code hợp lệ trong context của AngularJS. Đây là cơ chế lợi dụng của AngularJS Expression Injection / AngularJS Template Injection.
+
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/07072fd3-b71d-44a2-9308-e0b5be092d64" />
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/a9d11f59-3423-47ca-be39-2bc822c91e8f" />
-
+Ý nghĩa là:
+Khi bạn viết `alert(1)` trong HTML, thì trình duyệt không tự chạy (nó chỉ coi đó là text). Nhưng khi bạn viết `{{alert(1)}}`, AngularJS sẽ cố gắng chạy biểu thức đó vì nó coi đây là code hợp lệ trong context của AngularJS.
 
 
 
