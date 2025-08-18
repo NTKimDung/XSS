@@ -1,3 +1,49 @@
+# Tìm hiểu về lỗ hổng XSS
+Tên tài liệu: Tìm hiểu lỗ hổng XSS
+Người thực hiện: Kim Dung
+Ngày cập nhật: 18/08/2025
+# Mục lục
+
+# A. Lý thuyết
+## XSS là gi?
+## Nguyên nhân hoạt động của lỗ hổng XSS
+## Phân loại lỗ hổng XSS
+### 1. Reflected XSS
+### 2. Stored XSS:
+### 3. DOM Based XSS
+## Mục đích của việc tấn công XSS
+### Đánh cắp thông tin nhạy cảm
+### Lây nhiễm mã độc
+### Phá hoại giao diện người dùng (UI Defacement)
+### Tấn công người dùng khác
+### Khai thác lỗ hổng của hệ thống
+## Cách phát hiện lỗ hổng XSS
+### Khai thác lỗ hổng XSS bằng thủ công
+#### Mục tiêu và nguyên tắc chung
+#### Các bước kiểm tra thủ công
+#### Một số payload mẫu (dùng cho test, sửa theo context)
+## Cách ngăn chặn lỗ hổng
+## Tìm hiểu công cụ hỗ trợ phát hiện XSS
+### 1. CyStack Platform – A Web Security Platfor
+### 2. Phần mềm Burp Suite Free
+### 3. Phần mềm Netsparker
+### 4. Arachni
+### 5. Phần mềm W3af
+
+# B. Thực hành với Burp Suite Web
+## 1. Thực hành Reflected XSS vào HTML mà không có gì được mã hóa
+### 1,1 Reflected XSS vào HTML mà không có gì được mã hóa
+## 2. Thực hành Stored XSS
+### 2.1 Stored XSS into HTML context with nothing encoded
+### 2,2. Stored XSS into anchor href attribute with double quotes HTML-encoded
+### 2.3 Stored XSS into onclick event with angle brackets and double quotes HTML-encoded and single quotes and backslash escaped
+## 3. DOM XSS
+### 3,1. DOM XSS in document.write sink using source location.search
+### 3,2. DOM XSS in document.write sink using source location.search inside a select element
+### 3,3. DOM XSS in innerHTML sink using source location.search
+### 3,4. DOM XSS in jQuery anchor href attribute sink using location.search source
+### 3,5. DOM XSS in AngularJS expression with angle brackets and double quotes HTML-encoded
+
 # A. Lý thuyết
 ## XSS là gì?
 XSS, hay Cross-site scripting, là một loại lỗ hổng bảo mật web phổ biến cho phép kẻ tấn công chèn mã độc (thường là JavaScript) vào các trang web mà người dùng tin tưởng. Khi người dùng truy cập vào trang web bị nhiễm, mã độc sẽ được thực thi trong trình duyệt của họ, có khả năng đánh cắp thông tin nhạy cảm, thay đổi nội dung trang web, hoặc thậm chí chiếm quyền điều khiển hoàn toàn trình duyệt. 
