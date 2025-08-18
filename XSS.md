@@ -5,7 +5,7 @@ Ngày cập nhật: 18/08/2025
 # Mục lục
 
 # A. Lý thuyết
-## XSS là gi?
+## XSS là gì?
 ## Nguyên nhân hoạt động của lỗ hổng XSS
 ## Phân loại lỗ hổng XSS
 ### 1. Reflected XSS
