@@ -50,6 +50,7 @@ Kịch bản khai thác:
 Reflected XSS và Stored XSS có 2 sự khác biệt lớn trong quá trình tấn công.
 * Thứ nhất, để khai thác Reflected XSS, hacker phải lừa được nạn nhân truy cập vào URL của mình. Còn Stored XSS không cần phải thực hiện việc này, sau khi chèn được mã nguy hiểm vào CSDL của ứng dụng, hacker chỉ việc ngồi chờ nạn nhân tự động truy cập vào. Với nạn nhân, việc này là hoàn toàn bình thường vì họ không hề hay biết dữ liệu mình truy cập đã bị nhiễm độc.
 * Thứ 2, mục tiêu của hacker sẽ dễ dàng đạt được hơn nếu tại thời điểm tấn công nạn nhân vẫn trong phiên làm việc(session) của ứng dụng web. Với Reflected XSS, hacker có thể thuyết phục hay lừa nạn nhân đăng nhập rồi truy cập đến URL mà hắn ta cung cấp để thực thi mã độc. Nhưng Stored XSS thì khác, vì mã độc đã được lưu trong CSDL Web nên bất cứ khi nào người dùng truy cập các chức năng liên quan thì mã độc sẽ được thực thi, và nhiều khả năng là những chức năng này yêu cầu phải xác thực(đăng nhập) trước nên hiển nhiên trong thời gian này người dùng vẫn đang trong phiên làm việc.
+  
 Từ những điều này có thể thấy Stored XSS nguy hiểm hơn Reflected XSS rất nhiều, đối tượng bị ảnh hưởng có thế là tất cả nhưng người sử dụng ứng dụng web đó. Và nếu nạn nhân có vai trò quản trị thì còn có nguy cơ bị chiếm quyền điều khiển web.
 ### 3. DOM Based XSS
 DOM Based XSS là kỹ thuật khai thác XSS dựa trên việc thay đổi cấu trúc DOM của tài liệu, cụ thể là HTML. Chúng ta cùng xem xét một ví dụ cụ thể sau.
@@ -193,17 +194,26 @@ Các phương pháp phòng ngừa chính được sử dụng phổ biến bao g
 * Data validation
 * Filtering
 * Escaping
+  
 Bước đầu tiên trong công tác phòng chống tấn công này là Xác thực đầu vào. Mọi thứ, được nhập bởi người dùng phải được xác thực chính xác, bởi vì đầu vào của người dùng có thể tìm đường đến đầu ra. Xác thực dữ liệu có thể được đặt tên làm cơ sở để đảm bảo tính bảo mật của hệ thống. Tôi sẽ nhắc nhở rằng ý tưởng xác thực không cho phép đầu vào không phù hợp. Vì vậy nó chỉ giúp giảm thiểu rủi ro, nhưng có thể không đủ để ngăn chặn lỗ hổng XSS có thể xảy ra.
+
 Một phương pháp ngăn chặn tốt khác là lọc đầu vào của người dùng. Ý tưởng lọc là tìm kiếm các từ khóa nguy hiểm trong mục nhập của người dùng và xóa chúng hoặc thay thế chúng bằng các chuỗi trống. Những từ khóa đó có thể là:
-Thẻ `<script> </ script>`
-Lệnh Javascript
-Đánh dấu HTML
+
+- Thẻ `<script> </ script>`
+- Lệnh Javascript
+- Đánh dấu HTML
+  
 Lọc đầu vào khá dễ thực hành. Nó có thể được thực hiện theo nhiều cách khác nhau. Như:
-Bởi các developers đã viết mã phía server.
-Thư viện ngôn ngữ lập trình thích hợp đang được sử dụng.
+
+- Bởi các developers đã viết mã phía server.
+- Thư viện ngôn ngữ lập trình thích hợp đang được sử dụng.
+  
 Trong trường hợp này, một số developer viết mã riêng của họ để tìm kiếm các từ khóa thích hợp và xóa chúng. Tuy nhiên, cách dễ dàng hơn là chọn thư viện ngôn ngữ lập trình thích hợp để lọc đầu vào của người dùng. Tôi muốn lưu ý rằng việc sử dụng thư viện là một cách đáng tin cậy hơn, vì các thư viện đó đã được nhiều nhà phát triển sử dụng và thử nghiệm.
+
 Một phương pháp phòng ngừa khác có thể là ký tự Escape. Trong thực tế này, các ký tự thích hợp đang được thay đổi bằng các mã đặc biệt.
+
 Ví dụ: <ký tự Escape có thể giống như & # 60. Điều quan trọng cần biết là chúng ta có thể tìm thấy các thư viện thích hợp với ký tự escape.
+
 Trong khi đó, việc kiểm thử tốt cũng không nên quên điều đó. Chúng ta cần những kiểm thử phần mềm có kiến thức tốt và những công cụ kiểm thử phần mềm đáng tin cậy. Bằng cách này, chất lượng phần mềm sẽ được bảo đảm tốt hơn.
 ## Tìm hiểu công cụ hỗ trợ phát hiện XSS
 ### 1. CyStack Platform – A Web Security Platform
@@ -227,7 +237,8 @@ Arachni là một Ruby framework với đầy đủ tính năng, modular và hi�
 W3af (Web Application Attack and Audit Framework) là một web scanner mã nguồn mở. Web scanner này cung cấp một công cụ quét và khai thác lỗ hổng cho các ứng dụng web. W3af được viết bằng ngôn ngữ Python và có sẵn cho nhiều hệ điều hành phổ biến khác như Microsoft Windows, Linux, Mac OS X, FreeBSD và OpenBSD.
 W3af được chia thành hai phần chính, đó là core và các plug-in. Bộ quét lỗ hổng xác định hầu hết các lỗ hổng trong ứng dụng web bằng cách sử dụng hơn 130 plug-in. Phần core kết hợp với các quy trình và đưa ra các tính năng dựa trên plug-in. Để từ đó tìm ra các lỗ hổng và khai thác chúng.
 # B. Thực hành với Burp Suite
-## 1. Thực hành Reflected XSS 
+## 1. Thực hành Reflected XSS vào HTML mà không có gì được mã hóa
+### 1,1 Reflected XSS vào HTML mà không có gì được mã hóa
 Thử nhập một vài kí tự `test123` hoặc `<test123` vào search:
 <img width="1099" height="170" alt="image" src="https://github.com/user-attachments/assets/1ca598f5-e23b-4259-aa18-f6edbd20a763" />
 Kết quả: 
@@ -264,6 +275,7 @@ Trong ảnh ta thấy Request gửi đi:
 - Đây là minh chứng cho việc trang web dễ bị Reflected XSS, vì dữ liệu từ người dùng được phản chiếu trực tiếp và thực thi dưới dạng JavaScript.
 
 ## 2. Thực hành Stored XSS
+### 2.1 Stored XSS into HTML context with nothing encoded
 Ta thử nhập một đoạn HTML đơn giản vào phần comment của trang web để kiểm tra xem server có lọc các kí hiệu đặc biệt hay không.
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/1b2d588e-88c5-4004-bf3f-db9e15f498df" />
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/30e389bb-03b1-4bed-abd1-0fb024ddd674" />
@@ -299,12 +311,335 @@ Trang web cho phép người dùng đăng bình luận, nhưng dữ liệu nhậ
 - Kẻ tấn công có thể đánh cắp thông tin nhạy cảm như cookie hoặc session token để chiếm quyền truy cập tài khoản.
 - Ngoài ra, chúng có thể giả mạo hành động của người dùng, phát tán mã độc, hoặc leo thang quyền nếu nạn nhân là quản trị viên.
 - Stored XSS cũng có thể được sử dụng để dựng giao diện lừa đảo nhằm thu thập thông tin đăng nhập, hoặc thay đổi, phá hoại nội dung trang web, gây mất uy tín và ảnh hưởng trực tiếp đến an toàn của người dùng cũng như danh tiếng của tổ chức.
+### 2,2. Stored XSS into anchor href attribute with double quotes HTML-encoded
+Khi người dùng comment dưới bài viết như bình thường thì khi có người truy cập vào `Name` mà người dùng đã comment thì sẽ hiện ra website của người dùng đó:
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/290d21c8-403b-49c9-9d2a-b934bc0414cc" />
+
+Giải thích cụ thể như sau:
+
+Tên người bình luận (name faker 1) được hiển thị như một thẻ <a> (link).
+
+Thuộc tính href của <a> chứa giá trị https://faker1.com, tức là giá trị mà người dùng đã nhập (trường "Website/URL" trong form comment).
+
+Nghĩa là input từ người dùng đã được chèn trực tiếp vào thuộc tính href trong DOM.
+Như vậy ta tìm ra lỗ hổng có thể bị khai thác:
+Ở đây ta cho một javascript vào phần commnet `Website` thì khi có người truy cập vào thì người đó sẽ bị tấn công XSS:
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/3cf19f7c-b590-4e33-b17d-49e20480aba7" />
+
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/b957251f-b0a7-41c2-aff7-8b6303a80ed1" />
+
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/e43562b3-3d1d-4262-9e9a-1284e0f74a7e" />
+
+Ý nghĩa:
+Cũng như các comment bình thường thì sau khi comment tên website thành đoạn payload `javascript:alert(1)` và được Post Comment thì các dữ liệu đã được lưu vào hệ thống và hiện thị cho tất cả người truy cập. Và khi người khác vào trang này và click vào tên tác giả bình luận, họ cũng sẽ chạy đoạn JS độc hại.
+
+Trong thực tế, attacker có thể thay `alert(1)` bằng mã để:
+
+Đánh cắp cookie/session (document.cookie).
+
+Lừa người dùng nhập thông tin nhạy cảm (phishing).
+
+Thực hiện hành vi CSRF hoặc deface trang.
+### 2.3 Stored XSS into onclick event with angle brackets and double quotes HTML-encoded and single quotes and backslash escaped
+Khi người dùng comment bình thường:
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/4c7c05c8-6922-40e8-9011-bec390b4dae8" />
+
+Ta thấy:
+`href="http://faker1.com"`
+Đây là đường link hiển thị trên tên của bạn. Nếu người dùng click, họ sẽ được điều hướng đến `website http://faker1.com.`
+
+`onclick="var tracker=track({});tracker.track('http://faker1.com');"`
+Đây là đoạn JavaScript gắn kèm. Khi người dùng click, trước khi điều hướng, browser sẽ chạy đoạn JS này.
+
+`var tracker=track({})` có thể là đoạn mã của ứng dụng để theo dõi sự kiện click.
+
+`tracker.track('http://faker1.com');` cũng là logic nội bộ để ghi lại hành động click vào link đó.
+
+Kết quả thực tế:
+Khi click vào tên "name faker 1", trình duyệt:
+
+Thực thi đoạn JS trong onclick.
+
+Sau đó điều hướng người dùng sang `http://faker1.com.`
+
+Tuy nhiên nếu ta chèn một đoạn commnet như sau `http://foo?&apos;-alert(1)-&apos;` thì kết quả:
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/4e978793-309c-444d-a7cf-c4c974e42d9f" />
+
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/6f2d1b11-810f-40de-a709-ec1bbc79ad30" />
+
+Phân tích:
+
+Giá trị tôi nhập (http://foo?'-alert(1)-') không chỉ đưa vào href.
+
+Nó còn được đưa vào thuộc tính onclick của thẻ <a>.
+Trong onclick, ta thấy:
+
+`tracker.track('http://foo/?'-alert(1)-'');`
+
+Khi trình duyệt parse:
+
+Chuỗi `'http://foo/?'` bị kết thúc tại dấu `'` bạn chèn vào.
+
+Phần tiếp theo `-alert(1)-` được hiểu là JavaScript code thực thi.
+
+Sau đó lại gặp `'` → nối tiếp.
+
+Kết quả là trình duyệt chạy:
+
+`alert(1);` 
+
+Ý nghĩa:
+Tôi chèn một đoạn comment `http://foo?&apos;-alert(1)-&apos;` với `http://foo` là một trang web bình thương tuy nhiên tôi có chèn vào `?&apos;-alert(1)-&apos;` đây là ký tự `'` dấu nháy đơn với mục đích là phá hủy cấu trúc đoạn comment tôi chèn vào để thực hiện đoạn javascript `-alert(1)-`. Và khi có người click tên tức là click vào website có chèn đoạn javascript thì đoạn payload lợi dụng lỗi escape → biến input của bạn thành Stored XSS. Đây là phần nguy hiểm nhất cũng là nơi mà các hacker có thể lợi dụng để thực hiện mục đích của họ.
+
+## 3. DOM XSS
+### 3,1. DOM XSS in document.write sink using source location.search
+Ta thử nhập một đoạn comment đơn giản vào search như sau:
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/8da6383d-418c-4992-b082-2ee0c67a6564" />
+- Ở đây ta thấy có một vài chỗ  đáng chú ý:
+  
+Khi người dùng gõ từ khóa fgsydgfd13245 hoặc gõ cái người dùng cần tìm kiếm vào ô Search trên trang web thì trang web lấy luôn cái người dùng gõ, rồi in ra màn hình:
+
+`0 search results for 'fgsydgfd13245'`
+
+→ tức là dữ liệu bạn nhập được lấy từ URL rồi hiển thị trực tiếp.
+
+Trong phần Inspect Element (DevTools), bạn thấy:
+
+`<h1>0 search results for 'fgsydgfd13245'</h1>`
+
+→ nghĩa là dữ liệu của bạn được chèn thẳng vào mã HTML.
+
+- Đây là nguy cơ để có hacker lợi dụng để khai thác như:
+
+Nếu web chỉ hiển thị chữ bình thường thì an toàn.
+
+Nhưng ở đây web lấy nguyên si dữ liệu từ URL rồi đưa thẳng vào HTML (không kiểm tra, không lọc).
+
+Vậy hacker có thể không nhập chữ bình thường, mà nhập một đoạn mã JavaScript.
+
+Ví dụ:
+
+`"><svg onload=alert(1)>`
+
+Khi đó thay vì hiển thị kết quả tìm kiếm, trình duyệt sẽ chạy đoạn script này → hiện ra cái popup alert.
+
+Đây gọi là DOM XSS (kiểu tấn công XSS dựa vào code chạy trên trình duyệt).
+
+Đây là kết quả của việc hacker lợi dụng lỗ hổng DOM XSS:
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/ec7f259e-7f46-4ffe-9757-560f85ef2b54" />
+
+- Ở đây ta có thể hiểu như sau:
+Ứng dụng lấy dữ liệu trực tiếp từ URL (location.search) rồi dùng document.write để chèn vào trang web mà không lọc/thoát ký tự nguy hiểm.
+
+Hậu quả: Kẻ tấn công chỉ cần gửi link độc hại kiểu:
+
+`https://.../search?search=<script>alert('XSS')</script>`
+
+- Mục đích:→ Người dùng click link đó → trình duyệt chạy script → hacker có thể:
+
+Đánh cắp cookie/session.
+
+Chèn form giả để lừa nhập mật khẩu.
+
+Redirect sang website giả mạo.
+
+Tải mã độc từ server khác.
+### 3,2. DOM XSS in document.write sink using source location.search inside a select element
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/c30e4cef-a35a-433b-911b-4a6a8ff49b37" />
+
+Ở đây ta đang xem sản phẩm "Six Pack Beer Belt" (một item mẫu trong lab).
+
+Có một dropdown select box hiển thị danh sách các thành phố: London, Paris, Milan.
+
+Phần code trong tab Inspector cho thấy:
+
+var stores = ["London","Paris","Milan"];
+var store = (new URLSearchParams(window.location.search)).get('storeId');
+document.write('<select name="storeId">');
+if (store) {
+    document.write('<option selected>'+store+'</option>');
+}
+for (var i=0; i<stores.length; i++) {
+    if (stores[i] === store) { continue; }
+    document.write('<option>'+stores[i]+'</option>');
+}
+document.write('</select>');
+
+Ý nghĩa
+
+Nguồn dữ liệu (source): biến store lấy giá trị từ tham số storeId trong URL.
+
+Ví dụ: ...?productId=6&storeId=London → store = "London".
+
+Điểm chèn (sink): dữ liệu đó được chèn trực tiếp vào HTML bằng document.write() mà không hề escape hay sanitize.
+
+Nếu bạn nhập storeId khác với giá trị mặc định (London, Paris, Milan), nó sẽ hiện ra như một <option> mới trong dropdown.
+
+Ta thử chèn một storeId khác không có sẳn trong storeId mặc định sẽ như thế nào:
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/d73c9307-1626-4d3a-8819-8ddb10963d86" />
+
+Tôi đã thay URL thành:
+
+`...?productId=6&storeId=adbc1254`
+
+Kết quả: giá trị adbc1254 xuất hiện ngay trong dropdown list, ở vị trí được chọn `(<option selected>)`.
+
+Điều này chứng minh rằng:
+
+Input người dùng (tham số storeId) được chèn trực tiếp vào HTML → đây là DOM-based XSS sink.
+
+Nếu thay `adbc1254` bằng payload XSS như:
+
+`"></select><img%20src=1%20onerror=alert(1)>`
+
+thì code sẽ thực thi JavaScript ngay trên trình duyệt.
+
+Đây là lỗ hổng cho hacker khai thác:
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/ff00f9b2-1154-4ec5-bb84-a5d18cd804d2" />
+
+- Kết quả là: Một popup alert(1) đã xuất hiện → chứng minh bạn đã khai thác thành công lỗ hổng XSS.
+- Ở đây ta thấy được mối nguy hiểm của document.write()
+
+document.write() chèn nội dung vào HTML ngay lập tức.
+
+Nếu dữ liệu đưa vào không được escape, attacker có thể chèn thẻ HTML/JS tùy ý.
+
+- Hoặc biết cách khai thác DOM XSS
+
+Hacker lợi dụng input (storeId) trong URL.
+
+Chèn payload để “thoát” khỏi cấu trúc HTML sẵn có (`</select>`).
+
+Sau đó thêm thẻ độc hại (`<img onerror=alert(1)>`).
+
+Kết quả: JavaScript được thực thi → popup xuất hiện.
+
+- Ý nghĩa bảo mật thực tế
+
+Trong thực tế, attacker có thể thay vì `alert(1)` thì sẽ chèn code đánh cắp cookie, session, token, hoặc thực hiện hành vi phishing.
+
+Lab chỉ yêu cầu `alert(1)` để chứng minh lỗ hổng, nhưng ý nghĩa thực sự là: ứng dụng có thể bị tấn công nghiêm trọng chỉ vì xử lý DOM sai cách.
+### 3,3. DOM XSS in innerHTML sink using source location.search
+Khi người dùng nhập một yều cầu vào search như sau:
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/930b5f31-165d-4321-9a96-077ad6f0159f" /> 
+
+- Ta thấy được:
+  
+URL bị thay đổi thành `...?search=agfGYDGDF` có nghĩa là tham số search trên URL lấy giá trị input từ người dùng.
+
+Ứng dụng đọc giá trị của location.search sau đó sẽ chèn trực tieeos vào phần HTML có id `searchMessage` bằng `innerHTML`
+
+Trong HTML hiển thị:
+
+`<h1>`
+`<span>0 search results for '</span>`
+  `<span id="searchMessage">agfGYDGDF</span>`
+  `<span>'</span>`
+`</h1>`
+
+-> Như vậy, giá trị người dùng nhập vào được đưa thẳng vào DOM (innerHTML) mà không được mã hóa (escape).
+
+- Vậy ta thấy được lỗ hổng có thể khai thác tiếp theo ta thử nhập `<script>alert(1)</script>` vào search thì ta thấy được -> payload được render ra trong DOM đúng chỗ `<span id="searchMessage">`, nhưng không thực thi.
+
+- Vì sao không thực thi payload là vì:
+Ở đây ứng dụng lấy location.search và gán trực tiếp vào element.innerHTML.
+
+Tuy nhiên, khi dùng .innerHTML = "<script>alert(1)</script>", trình duyệt có parse thẻ `<script>` thành DOM node, nhưng không thực thi script bên trong.
+
+-> Đây là hành vi mặc định của API innerHTML: mọi `<script>` chèn động sẽ bị bỏ qua thực thi.
+
+Vậy ta thử một câu lệnh javascript mà trong hàm API của innerHTML ví dụ như:
+`<img src=1 onerror=alert(1)>` kết quả là:
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/faada56f-582f-4d80-bc2f-8c3c74a6e516" />
+
+Khi giá trị search được lấy từ location.search và gán thẳng vào innerHTML, trình duyệt sẽ parse HTML và tạo element <img>. Vì src=1 không load được, nên nó kích hoạt sự kiện onerror → thực thi alert(1).
+
+Tóm tắt:
+
+`<script>alert(1)</script>` không chạy với .innerHTML.
+
+`<img src=1 onerror=alert(1)>` chạy được vì onerror event được parse và gắn vào element.
+
+Đây là cách lợi dụng innerHTML để trigger JavaScript khi không thể dùng thẻ `<script>` trực tiếp.
+
+### 3,4. DOM XSS in jQuery anchor href attribute sink using location.search source
+Ta thử chèn `abc321` vào URL để kiểm tra kết quả cho ta thấy:
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/e3516a0b-c365-44b6-8aea-2c2c162b5337" />
+
+URL hiện tại `https://.../feedback?returnPath=/abc321`
+
+Ở dưới DOM ta thấy có đoạn:
+
+`<a id="backLink" href="/abc321">Back</a>`
+
+Nghĩa là giá trị trong returnPath đang được lấy từ location.search rồi được jQuery gán vào thuộc tính href của thẻ <a>.
+
+Đây là DOM-based XSS, vì jQuery (có thể là attr('href', ...)) lấy trực tiếp tham số URL returnPath và chèn vào DOM mà không encode đúng cách.
+
+Cách khai thác như sau:
+
+Truy cập:
+
+/feedback?returnPath=javascript:alert(document.cookie)
 
 
+Cuộn xuống và click “Back” → hiện alert ⇒ lab hoàn thành.
 
+Ta gõ dòng lệnh `javascript:alert(document.cookie)` vào URL như sau:
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/447c72bf-6077-4cc5-8d29-d68fb0898f21" />
 
+Thanh địa chỉ có URL:
+`/feedback?returnPath=javascript:alert(document.cookie)`
+→ Tham số returnPath do người dùng kiểm soát.
 
+Trang “Submit feedback” đang mở DevTools (tab Elements) và bôi xanh thẻ:
 
+`<a id="backlink" href="javascript:alert(document.cookie)">Back</a>`
+
+→ Code phía client (JavaScript/jQuery) đã lấy giá trị returnPath và gán thẳng vào thuộc tính href của liên kết “Back”.
+
+Ở trên cùng có banner “Congratulations, you solved the lab!” — nghĩa là payload đã được thực thi ít nhất một lần (điều kiện hoàn thành lab).
+
+Bạn cũng thấy script jQuery cũ jquery_1-8-2.js và file submitFeedback.js đang được load; file này thường là nơi đọc query-string và gán vào DOM.
+
+Ở đây 
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/cd7e1fdb-eda7-4a68-b653-1818ac6b38b4" />
+
+Ta bấm vào liên kết “Back” với href="javascript:alert(document.cookie)".
+
+Trình duyệt bật hộp thoại alert(...), nền trang bị mờ → bằng chứng rõ ràng là JavaScript đã chạy từ thuộc tính href kiểu javascript: (JS URL).
+
+Đây chính là DOM-based XSS dạng “anchor href attribute sink”: dữ liệu không tin cậy từ URL → jQuery .attr('href', ...) → người dùng click → mã độc chạy.
+
+Cơ chế lỗi (tóm tắt)
+
+Ứng dụng lấy returnPath từ location.search.
+
+jQuery gán trực tiếp vào `<a ... href=...>`.
+
+Vì không lọc/kiểm soát scheme của URL, attacker đặt `returnPath=javascript:....` hoặc `returnPath=data:....`
+
+Khi nạn nhân click link, trình duyệt thực thi JS trong href.
+
+### 3,5. 
+### 3,6. DOM XSS in AngularJS expression with angle brackets and double quotes HTML-encoded
+Ta thử nhập một đoạn javascript thử xem có thực thi không kết quả là:
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/b4f4b2bd-932f-4d00-a6bb-eee0689c0da0" />
+
+Ở đây ta thấy được không có cửa sổ nào hiện ra hãy đi đến cảnh báo ta thấy được 
+
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/52373225-ed9f-436a-94bd-0ca11b5c358e" />
+
+Có thể thấy dấu ngoặc nhọn và thẻ hình ảnh đã được HTML mã hóa nên việc chền đoạn JS `<img src=1 onerror=alert(1)>` này không phải là lựa chọn đúng. 
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/cf45e437-64c4-4113-8d9d-fb6e9053430d" />
+
+Vì ta thấy trang web đang dùng AngularJS v1.x (cụ thể là 1.7.7).
+
+Đồng thời trong <body> có: `<body ng-app>`
+
+→ nghĩa là toàn bộ nội dung trong <body> sẽ được Angular xử lý bằng AngularJS expressions (biểu thức Angular).
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/07072fd3-b71d-44a2-9308-e0b5be092d64" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/a9d11f59-3423-47ca-be39-2bc822c91e8f" />
 
 
 
