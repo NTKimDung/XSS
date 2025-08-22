@@ -490,6 +490,7 @@ Chèn form giả để lừa nhập mật khẩu.
 Redirect sang website giả mạo.
 
 Tải mã độc từ server khác.
+
 ### 3,2. DOM XSS in document.write sink using source location.search inside a select element
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/c30e4cef-a35a-433b-911b-4a6a8ff49b37" />
 
@@ -565,6 +566,7 @@ Kết quả: JavaScript được thực thi → popup xuất hiện.
 Trong thực tế, attacker có thể thay vì `alert(1)` thì sẽ chèn code đánh cắp cookie, session, token, hoặc thực hiện hành vi phishing.
 
 Lab chỉ yêu cầu `alert(1)` để chứng minh lỗ hổng, nhưng ý nghĩa thực sự là: ứng dụng có thể bị tấn công nghiêm trọng chỉ vì xử lý DOM sai cách.
+
 ### 3,3. DOM XSS in innerHTML sink using source location.search
 Khi người dùng nhập một yều cầu vào search như sau:
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/930b5f31-165d-4321-9a96-077ad6f0159f" /> 
@@ -690,6 +692,140 @@ Vì thấy được biểu thức AngularJS nên ta dùng " cặp dấu ngoặc 
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/a9d11f59-3423-47ca-be39-2bc822c91e8f" />
 Ý nghĩa là:
 Khi bạn viết `alert(1)` trong HTML, thì trình duyệt không tự chạy (nó chỉ coi đó là text). Nhưng khi bạn viết `{{alert(1)}}`, AngularJS sẽ cố gắng chạy biểu thức đó vì nó coi đây là code hợp lệ trong context của AngularJS.
+
+### 3,6. DOM XSS in jQuery selector sink using a hashchange event
+Ta thử xem trang View page source ở trong bài lab:
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/a772adf5-1bee-46f6-a008-5205e4e82000" />
+
+Ta thấy được ở đây có:
+Ý nghĩa từng dòng `$(window).on('hashchange', function(){ ... });`
+
+Gắn một event listener cho sự kiện hashchange trên window.
+
+Tức là: khi phần hash (sau dấu # trong URL) thay đổi, đoạn code trong { ... } sẽ chạy.
+
+`var post = $('section.blog-list h2:contains(' + decodeURIComponent(window.location.hash.slice(1)) + ')');`
+
+Lấy giá trị trong `window.location.hash`, bỏ dấu # bằng `.slice(1)`.
+
+Kiếm tra như sau:
+<img width="1008" height="703" alt="image" src="https://github.com/user-attachments/assets/31c2380d-3935-4c07-b236-4fd3d598134e" />
+
+Ví dụ URL: `https://site.com/#123`
+
+`window.location.hash.slice(1) = "123".`
+
+`decodeURIComponent(...)` → giải mã nếu hash bị URL-encoded (ví dụ #New%20Year → "New Year").
+
+Ghép chuỗi vào selector jQuery:
+
+`$('section.blog-list h2:contains(123)')`
+
+→ Nghĩa là: tìm tất cả thẻ `<h2>` nằm trong `section.blog-list` có chứa text `"123"`.
+
+Kết quả: biến post là một jQuery object, trỏ đến thẻ `<h2>` đó trong DOM.
+
+`if (post) post.get(0).scrollIntoView();`
+
+Nếu tìm thấy post (tức là có `<h2>` chứa text cần tìm), lấy node DOM đầu tiên `(post.get(0))` và gọi `.scrollIntoView()`.
+
+`.scrollIntoView()` khiến browser tự động cuộn trang đến vị trí của thẻ đó.
+
+Cơ chế này là: khi người dùng đổi hash trong URL → trang sẽ tự động cuộn và hiển thị đến bài viết tương ứng.
+
+* Khi kẻ tấn công lợi dụng điểm yếu này để thực hiện lỗ hổng XSS như sau:
+
+Vấn đề nằm ở đoạn: `$('section.blog-list h2:contains(' + <giá trị từ hash> + ')');`
+
+`window.location.hash` là dữ liệu attacker kiểm soát.
+
+Nó được nối trực tiếp vào jQuery selector string mà không hề lọc.
+
+Nếu attacker thay hash thành payload đặc biệt, họ có thể phá vỡ cú pháp selector và chèn HTML/JS.
+
+Ví dụ payload:
+
+`(https://0afb0016032c60ec80dba3bd00740032.web-security-academy.net/#<img src=x onerror=alert(1)>`
+
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/31b6ec77-5a20-4302-8f21-6e5f35d94973" />
+
+Khi code chạy:
+
+Trong callback, họ lấy `window.location.hash.slice(1)` → chính là nội dung attacker nhập sau #.
+
+Sau đó đưa thẳng vào jQuery $().
+
+Ở đây `$("<img src=x onerror=alert(1)>").show();` và `window.location.hash = "#<img src=x onerror=alert(1)>"`
+
+jQuery hiểu chuỗi này là một element HTML mới, nên nó tạo một thẻ <img> và đưa vào DOM của trang.
+Khi DOM được chèn thêm node `<img src=x onerror=alert(1)>`, trình duyệt sẽ cố load ảnh x.
+
+Vì ảnh không tồn tại → lỗi → kích hoạt sự kiện onerror.
+
+`onerror=alert(1)` được thực thi → JavaScript của attacker chạy thành công.
+
+Khi trang đang ở URL này:`https://0a5800d8031c9c3080c1031100da00a3.web-security-academy.net/#%3Cimg%20src=x%20onerror=print()%3E`
+Ta tiếp tục thực hiện viết một exploit HTML đểTrong phần Body của exploit, có đoạn:
+
+`<iframe src="https://0ace00a803aa810c81e503c0002d0046.web-security-academy.net/#<img src=1 onerror=print()>" hidden="hidden"></iframe>`
+
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/8b68e41c-668f-4e14-95d6-a4e5f809d145" />
+
+Đây là một `iframe` ẩn (hidden="hidden") để nạn nhân không nhìn thấy.
+
+`src` của `iframe` trỏ tới website mục tiêu, kèm theo phần `fragment/hash` sau dấu #:
+
+`#<img src=1 onerror=print()>`
+
+* Ý nghĩa:
+  
+Iframe exploit:
+
+Attacker không gửi link trực tiếp cho nạn nhân.
+
+Thay vào đó, họ tạo một exploit page chứa iframe → khi nạn nhân mở exploit này, iframe sẽ tự động tải trang mục tiêu với payload đã nhúng trong hash.
+
+Nạn nhân không biết gì nhưng script đã được thực thi. chèn payload XSS vào trang web mục tiêu.
+
+### 3,7 Reflected DOM XSS
+Ta thử nhập một chuỗi ký tự vào form search: `XSS`
+
+* Và thử tìm hiểu luồng hoạt động của nó như sau:
+
+Server trả về dữ liệu JSON (ví dụ kết quả search).
+Ví dụ bình thường server gửi về:
+
+`{"searchTerm":"XSS","results":[]}`
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/d4ff1be2-42c7-45a8-8099-7fdc153c4f3a" />
+
+Trình duyệt nhận được responseText → đưa vào `eval()`.
+Nghĩa là nó thực hiện: `var searchResultsObj = {"searchTerm":"XSS","results":[]};`
+
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/65234c87-929b-45a8-8030-1c32ebfbde1c" />
+
+* Nếu attacker điều khiển được dữ liệu trong responseText (qua query `?search=`), thì có thể chèn code JavaScript.
+Ví dụ attacker gửi: `?search=\"-alert(1)}//`
+
+Khi đó server có thể trả về:
+
+`{"searchTerm":"XSS"\"-alert(1)}//,"results":[]}`
+
+Lúc này eval() sẽ chạy:
+
+`var searchResultsObj = {"searchTerm":"XSS"\"-alert(1)}//,"results":[]}`
+
+`alert(1)` được thực thi ngay lập tức → DOM-based Reflected XSS.
+* Ý nghĩa:
+Khi ta điều tra trong công cụ Burp suite ta thấy được chuỗi mà người dùng nhập vào form search thường thì sau khi người dùng nhập chuỗi xong thì sẽ được gửi lên server và phản hồi lại cho client. Bình thường nếu ứng dụng sử dụng `JSON.parce()` để xử lý dữ liệu nhập vào thì chỉ những chuỗi JSON hợp lệ mới được chấp nhận, còn các đoạn mã độc sẽ bị chặn. Tuy nhiên, trong bài lab, dữ liệu phản hồi lại được đưa thẳng vào hàm `eval()`. Sau khi người dùng nhập chuỗi tìm kiếm xong, kết quả trả về từ server sẽ được trình duyệt xử lý ngay bằng `eval()`. Điều này dẫn đến nguy cơ, bởi vì `eval()` coi toàn bộ chuỗi phản hồi là mã JavaScript và thực thi trực tiếp. Trong ví dụ ta thay đổi chuổi nhập vào hợp lí thành một payload nguy hiểm và `eval()` và không kiểm tra nên kết quả là ta đã thực hiện được lỗ hổng XSS.
+
+### 3,8. Stored DOM XSS
+Ta thử vào form comment và comment một chuỗi ký tự như sau: `<><img src=1 onerror=alert(1)>`
+nếu trang web ngăn chặn lỗ hổng XSS thì nó sẽ mã hóa các ký tự đặc biệt nếu được mã hóa hết thì câu lênh payload này sẽ không được thực thi tuy nhiên câu lệnh vẫn được chạy và khai thác lỗ hổng XSS thành công.
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/075c3c1d-ea2d-4da2-8512-f809acd41cf2" />
+Có nghĩa trang web có mã hóa nhưng chỉ ký tự đầu mới được mã hóa và các ký tự sau không ảnh hưởng gì về việc mã hóa hay encode vì vậy lỗ hổng vẫn được khai thác.
+
+
+
 
 
 
